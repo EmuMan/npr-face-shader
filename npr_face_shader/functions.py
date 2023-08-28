@@ -1,9 +1,11 @@
 import bpy
 import bmesh
 
+from multiprocessing.pool import Pool
+
 from .utils import *
 
-def create_face_shadow_map():
+def create_face_shadow_map(pool: Pool):
     target_name = 'face'
     target_obj = bpy.data.objects.get(target_name)
     target_matrix_world = np.array(target_obj.matrix_world)[0:3, 0:3]
@@ -28,30 +30,36 @@ def create_face_shadow_map():
 
     blur_size = 25
     
-    # mesh has to be triangulated for barycentric conversion to work
-    print('Triangulating mesh...')
-    bm = bmesh.new()
-    bm.from_mesh(target_obj.data)
-    triangulated = bmesh.ops.triangulate(bm, faces=bm.faces[:], quad_method='BEAUTY', ngon_method='BEAUTY')
-    
-    lines_on_image = []
-    print('Mapping face strokes to UV coordinates...')
-    for stroke in face_lines_strokes:
-        stroke_points = [np.array(point.co) for point in stroke.points]
-        lines_on_image.append(project_points_to_uv(
-            original_mesh=bm,
-            triangulated_mesh=triangulated,
-            mesh_matrix_world=target_matrix_world,
-            points=stroke_points,
-            points_matrix_world=face_lines_matrix_world,
-        ))
-    
     image = bpy.data.images['Face Shadow']
     width = image.size[0]
     height = image.size[1]
     
     # The image is grayscale so this is fine
     image_pixels = np.array([0.0 for _ in range(width * height)])
+    
+    # mesh has to be triangulated for barycentric conversion to work
+    print('Triangulating mesh...')
+    bm = bmesh.new()
+    bm.from_mesh(target_obj.data)
+    triangulated = bmesh.ops.triangulate(bm, faces=bm.faces[:], quad_method='BEAUTY', ngon_method='BEAUTY')
+    
+    simplified_target_mesh: list[Simple3DFace] = []
+    for face in triangulated['faces']:
+        simplified_target_mesh.append(Simple3DFace(
+            uvs=[np.array(loop[bm.loops.layers.uv.active].uv) for loop in face.loops],
+            vertices=[np.array(vert.co) for vert in face.verts],
+        ))
+
+    lines_on_image = []
+    print('Mapping face strokes to UV coordinates...')
+    uv_projector = UVProjector(
+        triangulated_mesh=simplified_target_mesh,
+        mesh_matrix_world=target_matrix_world,
+        points_matrix_world=face_lines_matrix_world,
+    )
+    
+    face_lines_strokes = [[np.array(point.co) for point in stroke.points] for stroke in face_lines_strokes]
+    lines_on_image = pool.map(uv_projector, face_lines_strokes)
     
     print('Finding row intersection points...')
     intersection_points = []
@@ -68,32 +76,15 @@ def create_face_shadow_map():
         intersection_points.append(intersections_for_line)
     
     print('Calculating base pixels...')
-    for x in range(width):
-        for y in range(height):
-            position = np.array([x / width, y / height])
-            line_options = [(i, x_values[y]) for i, x_values in enumerate(intersection_points)]
-            surrounding_lines = get_surrounding_values(position[0], line_options, key=lambda line: line[1])
-            
-            final_value = 0.0
-            if surrounding_lines[0]:
-                offset = (surrounding_lines[0][0] + 1) / (len(line_options) + 1)
-                final_point = 1.0
-                if surrounding_lines[1]:
-                    final_point = surrounding_lines[1][1]
-                temp_value = (position[0] - surrounding_lines[0][1]) / \
-                            (final_point - surrounding_lines[0][1])
-                final_value = offset + temp_value / (len(line_options) + 1)
-            elif surrounding_lines[1]:
-                final_value = (position[0] / surrounding_lines[1][1]) / (len(line_options) + 1)
-            
-            set_pixel(image_pixels, width, height, position, final_value)
-    
+
+    base_pixel_calculator = BasePixelCalculator(width, height, intersection_points)
+    image_pixels[:] = pool.map(base_pixel_calculator, range(width * height))
+
     nose_on_image = []
     print('Mapping nose stroke to UV coordinates...')
     nose_line_stroke_points = [np.array(point.co) for point in nose_line_stroke.points]
     nose_on_image = project_points_to_uv(
-        original_mesh=bm,
-        triangulated_mesh=triangulated,
+        triangulated_mesh=simplified_target_mesh,
         mesh_matrix_world=target_matrix_world,
         points=nose_line_stroke_points,
         points_matrix_world=nose_line_matrix_world,
@@ -105,21 +96,25 @@ def create_face_shadow_map():
     print('Calculating nose pixels...')
     nose_center = find_2d_shape_center(nose_on_image)
     nose_max_distance_squared = find_2d_furthest_distance_squared(nose_center, nose_on_image)
-    for x in range(width):
-        for y in range(height):
-            position = np.array([x / width, y / height])
-            ratio = find_value_inside_shape(position, nose_center, nose_max_distance_squared, nose_on_image)
-            if not ratio:
-                continue
-            pixel_value = ratio ** 2 / 2.0
-            set_pixel_blended(image_pixels, width, height, position, pixel_value)
+    
+    nose_pixel_calculator = ShapePixelCalculator(
+        width=width,
+        height=height,
+        shape_center=nose_center,
+        shape_max_distance_squared=nose_max_distance_squared,
+        shape_points=nose_on_image,
+    )
+
+    nose_pixels = pool.map(nose_pixel_calculator, range(width * height))
+    for i, value in enumerate(nose_pixels):
+        if value is not None:
+            set_pixel_blended(image_pixels, i, value ** 2 / 2.0)
     
     rembrandt_on_image = []
     print('Mapping Rembrandt stroke to UV coordinates...')
     rembrandt_line_stroke_points = [np.array(point.co) for point in rembrandt_line_stroke.points]
     rembrandt_on_image = project_points_to_uv(
-        original_mesh=bm,
-        triangulated_mesh=triangulated,
+        triangulated_mesh=simplified_target_mesh,
         mesh_matrix_world=target_matrix_world,
         points=rembrandt_line_stroke_points,
         points_matrix_world=rembrandt_line_matrix_world,
@@ -131,14 +126,19 @@ def create_face_shadow_map():
     print('Calculating Rembrandt pixels...')
     rembrandt_center = find_2d_shape_center(rembrandt_on_image)
     rembrandt_max_distance_squared = find_2d_furthest_distance_squared(rembrandt_center, rembrandt_on_image)
-    for x in range(width):
-        for y in range(height):
-            position = np.array([x / width, y / height])
-            ratio = find_value_inside_shape(position, rembrandt_center, rembrandt_max_distance_squared, rembrandt_on_image)
-            if not ratio:
-                continue
-            pixel_value = (1 - ratio ** 2) / 2.0 + 0.5
-            set_pixel_blended(image_pixels, width, height, position, pixel_value)
+
+    rembrandt_pixel_calculator = ShapePixelCalculator(
+        width=width,
+        height=height,
+        shape_center=rembrandt_center,
+        shape_max_distance_squared=rembrandt_max_distance_squared,
+        shape_points=rembrandt_on_image,
+    )
+    
+    rembrandt_pixels = pool.map(rembrandt_pixel_calculator, range(width * height))
+    for i, value in enumerate(rembrandt_pixels):
+        if value is not None:
+            set_pixel_blended(image_pixels, i, (1 - value ** 2) / 2.0 + 0.5)
 
     print('Blurring final result...')
     gaussian_kernel = build_box_kernel(blur_size)
@@ -149,8 +149,8 @@ def create_face_shadow_map():
     
     print('Updating image...')
     converted = []
-    for pixel in image_pixels:
-        converted.extend([pixel, pixel, pixel, 1.0])
+    for value in image_pixels:
+        converted.extend([value, value, value, 1.0])
     image.pixels[:] = converted
     
     print('Done!')

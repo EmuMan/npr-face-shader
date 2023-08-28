@@ -14,13 +14,18 @@ bl_info = {
     "category": "Object",
 }
 
-import bpy
-from .interface import *
+# This block is needed to play nicely with multiprocessing
+try:
+    import bpy
+    from .interface import *
 
-classes = [
-    ComputeFaceShadows,
-    FaceShadePanel,
-]
+    classes = [
+        ComputeFaceShadows,
+        FaceShadePanel,
+    ]
+except ImportError:
+    pass
+
 
 def register():
     for bpy_class in classes:

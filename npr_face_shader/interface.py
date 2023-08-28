@@ -1,5 +1,7 @@
 import bpy
 
+from multiprocessing.pool import Pool
+
 from . import functions
 
 class ComputeFaceShadows(bpy.types.Operator):
@@ -8,7 +10,8 @@ class ComputeFaceShadows(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        functions.create_face_shadow_map()
+        with Pool(processes=8) as pool:
+            functions.create_face_shadow_map(pool)
         return {'FINISHED'}
 
 class FaceShadePanel(bpy.types.Panel):

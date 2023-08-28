@@ -9,14 +9,67 @@ import numpy.typing as npt
 class BasePixelCalculator:
     width: int
     height: int
-    intersection_points: list[int]
+    intersection_points: npt.NDArray[np.float64]
     
-    def __call__(self, index: int):
+    def __call__(self, index: int) -> float:
         x_index = index % self.width
         y_index = index // self.width
         x_position = x_index / self.width
         line_options = [(i, x_values[y_index]) for i, x_values in enumerate(self.intersection_points)]
-        return get_surrounding_values(x_position, line_options, key=lambda line: line[1])
+        surrounding_lines = get_surrounding_values(x_position, line_options, key=lambda line: line[1])
+
+        final_value = 0.0
+        if surrounding_lines[0]:
+            offset = (surrounding_lines[0][0] + 1) / (len(line_options) + 1)
+            final_point = 1.0
+            if surrounding_lines[1]:
+                final_point = surrounding_lines[1][1]
+            temp_value = (x_position - surrounding_lines[0][1]) / \
+                        (final_point - surrounding_lines[0][1])
+            final_value = offset + temp_value / (len(line_options) + 1)
+        elif surrounding_lines[1]:
+            final_value = (x_position / surrounding_lines[1][1]) / (len(line_options) + 1)
+        
+        return final_value
+
+
+@dataclass
+class ShapePixelCalculator:
+    width: int
+    height: int
+    shape_center: npt.NDArray[np.float64]
+    shape_max_distance_squared: float
+    shape_points: list[npt.NDArray[np.float64]]
+
+    def __call__(self, index: int) -> Optional[float]:
+        x_index = index % self.width
+        y_index = index // self.width
+        position = np.array([x_index / self.width, y_index / self.height])
+        ratio = find_value_inside_shape(position, self.shape_center, self.shape_max_distance_squared, self.shape_points)
+        if not ratio:
+            return None
+        return ratio
+
+
+@dataclass
+class Simple3DFace:
+    uvs: list[npt.NDArray[np.float64]]
+    vertices: list[npt.NDArray[np.float64]]
+
+
+@dataclass
+class UVProjector:
+    triangulated_mesh: list[Simple3DFace]
+    mesh_matrix_world: npt.NDArray[np.float64]
+    points_matrix_world: npt.NDArray[np.float64]
+
+    def __call__(self, points: list[npt.NDArray[np.float64]]) -> Any:
+        return project_points_to_uv(
+            triangulated_mesh=self.triangulated_mesh,
+            mesh_matrix_world=self.mesh_matrix_world,
+            points=points,
+            points_matrix_world=self.points_matrix_world,
+        )
 
 
 def clamp(n, smallest, largest): return smallest if n < smallest else largest if n > largest else n
@@ -56,17 +109,17 @@ def interpolate_point_barycentric(
     interpolated_value = u * val_a + v * val_b + w * val_c
     return interpolated_value
 
-def get_closest_face(pos: npt.NDArray[np.float64], target_mesh: dict, matrix_world: npt.NDArray[np.float64]) -> Optional[Any]:
+def get_closest_face(pos: npt.NDArray[np.float64], target_mesh: list[Simple3DFace], matrix_world: npt.NDArray[np.float64]) -> Optional[Simple3DFace]:
     closest_face = None
     closest_face_distance_squared = None
     
-    for face in target_mesh['faces']:
+    for face in target_mesh:
         face_center = np.array([0.0, 0.0, 0.0])
-        for vertex in face.verts:
-            vertex_loc = matrix_world @ np.array(vertex.co)
+        for vertex in face.vertices:
+            vertex_loc = matrix_world @ np.array(vertex)
             face_center += vertex_loc
         
-        face_center /= len(face.verts)
+        face_center /= len(face.vertices)
         distance = face_center - pos
         distance_squared = distance.dot(distance)
         if not closest_face or distance_squared < closest_face_distance_squared:
@@ -98,27 +151,20 @@ def get_line_x_from_y(y: float, p1: npt.NDArray[np.float64], p2: npt.NDArray[np.
     d = (y - p1[1]) / (p2[1] - p1[1])
     return p2[0] * d + p1[0] * (1 - d)
 
-def set_pixel(image_pixels: npt.NDArray[np.float64], width: int, height: int, position: npt.NDArray[np.float64], color: float) -> None:
-    pixel_location = position * (width, height)
-    offset = pixel_location[0] + pixel_location[1] * width
-    image_pixels[int(offset)] = color
+def set_pixel(image_pixels: npt.NDArray[np.float64], index: int, color: float) -> None:
+    image_pixels[index] = color
 
-def get_pixel(image_pixels: npt.NDArray[np.float64], width: int, height: int, position: npt.NDArray[np.float64]) -> float:
-    pixel_location = position * (width, height)
-    offset = pixel_location[0] + pixel_location[1] * width
-    return image_pixels[int(offset)]
+def get_pixel(image_pixels: npt.NDArray[np.float64], index: int) -> float:
+    return image_pixels[index]
 
-def set_pixel_blended(image_pixels: npt.NDArray[np.float64], width: int, height: int, position: npt.NDArray[np.float64], color: float) -> None:
-    pixel_location = position * (width, height)
-    offset = int(pixel_location[0] + pixel_location[1] * width)
-    image_pixels[offset] = blend_overlay(image_pixels[offset], color)
+def set_pixel_blended(image_pixels: npt.NDArray[np.float64], index: int, color: float) -> None:
+    image_pixels[index] = blend_overlay(image_pixels[index], color)
     
 def blend_overlay(value_a: float, value_b: float) -> float:
     return (2 * value_a * value_b) if value_b else (1 - 2 * (1 - value_a) * (1 - value_b))
 
 def project_points_to_uv(
-        original_mesh: Any,
-        triangulated_mesh: dict,
+        triangulated_mesh: list[Simple3DFace],
         mesh_matrix_world: npt.NDArray[np.float64],
         points: Iterable[npt.NDArray[np.float64]],
         points_matrix_world: npt.NDArray[np.float64],
@@ -129,16 +175,15 @@ def project_points_to_uv(
     for initial_point in points:
         initial_point_pos = points_matrix_world @ initial_point
         closest_face = get_closest_face(initial_point_pos, triangulated_mesh, mesh_matrix_world)
-        closest_face_verts = [v.co for v in closest_face.verts]
         
         # Barycentric conversion then interpolation.
-        triangle_a = np.array(closest_face_verts[0])
-        triangle_b = np.array(closest_face_verts[1])
-        triangle_c = np.array(closest_face_verts[2])
+        triangle_a = closest_face.vertices[0]
+        triangle_b = closest_face.vertices[1]
+        triangle_c = closest_face.vertices[2]
         
-        value_a = np.array(closest_face.loops[0][original_mesh.loops.layers.uv.active].uv)
-        value_b = np.array(closest_face.loops[1][original_mesh.loops.layers.uv.active].uv)
-        value_c = np.array(closest_face.loops[2][original_mesh.loops.layers.uv.active].uv)
+        value_a = closest_face.uvs[0]
+        value_b = closest_face.uvs[1]
+        value_c = closest_face.uvs[2]
         
         input_point = np.array(initial_point_pos)
         
