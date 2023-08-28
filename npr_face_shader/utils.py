@@ -238,3 +238,14 @@ def find_value_inside_shape(
         
     # ray does not have a bounding point
     return None
+
+def build_gaussian_kernel(size: int) -> npt.NDArray[np.float64]:
+    # pascal's triangle is apparently a good approximation for this
+    kernel = np.array([0.0] * size)
+    kernel[0] = 1.0
+    for i in range(1, size):
+        kernel[i] = kernel[i - 1] * ((size - i) / i)
+    return kernel / 2 ** (size - 1)
+
+def build_box_kernel(size: int) -> npt.NDArray[np.float64]:
+    return np.array([1.0 / size] * size)

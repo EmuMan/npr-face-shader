@@ -25,6 +25,8 @@ def create_face_shadow_map():
     rembrandt_line_layer = rembrandt_line_obj.data.layers[0]
     rembrandt_line_stroke = rembrandt_line_layer.frames[0].strokes[0]
     rembrandt_line_matrix_world = np.array(rembrandt_line_obj.matrix_world)[0:3, 0:3]
+
+    blur_size = 25
     
     # mesh has to be triangulated for barycentric conversion to work
     print('Triangulating mesh...')
@@ -137,6 +139,13 @@ def create_face_shadow_map():
                 continue
             pixel_value = (1 - ratio ** 2) / 2.0 + 0.5
             set_pixel_blended(image_pixels, width, height, position, pixel_value)
+
+    print('Blurring final result...')
+    gaussian_kernel = build_box_kernel(blur_size)
+    image_pixels_2d = image_pixels.reshape((height, width))
+    image_pixels_2d = np.apply_along_axis(lambda x: np.convolve(x, gaussian_kernel, mode='same'), 0, image_pixels_2d)
+    image_pixels_2d = np.apply_along_axis(lambda x: np.convolve(x, gaussian_kernel, mode='same'), 1, image_pixels_2d)
+    image_pixels = image_pixels_2d.reshape(width * height)
     
     print('Updating image...')
     converted = []
