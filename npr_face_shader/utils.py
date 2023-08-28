@@ -1,10 +1,9 @@
-from mathutils import Vector
-
-from typing import Optional
+from typing import Optional, Any, Callable
+from collections.abc import Iterable
 from dataclasses import dataclass
-import math
 
 import numpy as np
+import numpy.typing as npt
 
 @dataclass
 class BasePixelCalculator:
@@ -13,16 +12,22 @@ class BasePixelCalculator:
     intersection_points: list[int]
     
     def __call__(self, index: int):
-        x = index % self.width
-        y = index // self.width
-        position = Vector((x / self.width, y / self.height))
-        line_options = [(i, x_values[y]) for i, x_values in enumerate(self.intersection_points)]
-        return get_surrounding_values(position.x, line_options, key=lambda line: line[1])
+        x_index = index % self.width
+        y_index = index // self.width
+        x_position = x_index / self.width
+        line_options = [(i, x_values[y_index]) for i, x_values in enumerate(self.intersection_points)]
+        return get_surrounding_values(x_position, line_options, key=lambda line: line[1])
 
 
 def clamp(n, smallest, largest): return smallest if n < smallest else largest if n > largest else n
 
-def barycentric_coordinates(p, a, b, c):
+def barycentric_coordinates(
+        p: npt.NDArray[np.float64],
+        a: npt.NDArray[np.float64],
+        b: npt.NDArray[np.float64],
+        c: npt.NDArray[np.float64],
+        ) -> tuple[np.float64, np.float64, np.float64]:
+    
     v0 = b - a
     v1 = c - a
     v2 = p - a
@@ -40,39 +45,47 @@ def barycentric_coordinates(p, a, b, c):
     
     return u, v, w
 
-def interpolate_point_barycentric(u, v, w, val_a, val_b, val_c):
+def interpolate_point_barycentric(
+        u: np.float64,
+        v: np.float64,
+        w: np.float64,
+        val_a: npt.NDArray[np.float64],
+        val_b: npt.NDArray[np.float64],
+        val_c: npt.NDArray[np.float64],
+        ) -> npt.NDArray[np.float64]:
     interpolated_value = u * val_a + v * val_b + w * val_c
     return interpolated_value
 
-def get_closest_face(pos: Vector, target_mesh: dict, matrix_world):
+def get_closest_face(pos: npt.NDArray[np.float64], target_mesh: dict, matrix_world: npt.NDArray[np.float64]) -> Optional[Any]:
     closest_face = None
     closest_face_distance_squared = None
     
     for face in target_mesh['faces']:
-        face_center = Vector()
+        face_center = np.array([0.0, 0.0, 0.0])
         for vertex in face.verts:
-            vertex_loc = matrix_world @ vertex.co
+            vertex_loc = matrix_world @ np.array(vertex.co)
             face_center += vertex_loc
         
         face_center /= len(face.verts)
         distance = face_center - pos
-        if not closest_face or distance.length_squared < closest_face_distance_squared:
+        distance_squared = distance.dot(distance)
+        if not closest_face or distance_squared < closest_face_distance_squared:
             closest_face = face
-            closest_face_distance_squared = distance.length_squared
+            closest_face_distance_squared = distance_squared
     
     return closest_face
 
-def get_furthest_vertex_distance(pos: Vector, vertices: list) -> float:
+def get_furthest_vertex_distance(pos: npt.NDArray[np.float64], vertices: Iterable[npt.NDArray[np.float64]]) -> float:
     furthest_vertex_distance_squared = None
     for vertex_pos in vertices:
         distance = vertex_pos - pos
-        distance_squared = distance.length_squared
+        distance_squared = distance.dot(distance)
         if not furthest_vertex_distance_squared or distance_squared > furthest_vertex_distance_squared:
             furthest_vertex_distance_squared = distance_squared
             
-    return math.sqrt(furthest_vertex_distance_squared)
+    return np.sqrt(furthest_vertex_distance_squared)
 
-def get_surrounding_values(value, options, key):
+def get_surrounding_values(value: Any, options: Iterable[Any], key: Callable):
     previous_option = None
     options = sorted(options, key=key)
     for option in options:
@@ -81,77 +94,87 @@ def get_surrounding_values(value, options, key):
         previous_option = option
     return (previous_option, None)
 
-def get_line_x_from_y(y: float, p1: Vector, p2: Vector) -> Vector:
-    d = (y - p1.y) / (p2.y - p1.y)
-    return p2.x * d + p1.x * (1 - d)
+def get_line_x_from_y(y: float, p1: npt.NDArray[np.float64], p2: npt.NDArray[np.float64]) -> float:
+    d = (y - p1[1]) / (p2[1] - p1[1])
+    return p2[0] * d + p1[0] * (1 - d)
 
-def set_pixel(image_pixels, width, height, position, color):
-    pixel_location = Vector((int(position.x * width), int(position.y * height)))
-    offset = pixel_location.x + pixel_location.y * width
+def set_pixel(image_pixels: npt.NDArray[np.float64], width: int, height: int, position: npt.NDArray[np.float64], color: float) -> None:
+    pixel_location = position * (width, height)
+    offset = pixel_location[0] + pixel_location[1] * width
     image_pixels[int(offset)] = color
 
-def get_pixel(image_pixels, width, height, position) -> float:
-    pixel_location = Vector((int(position.x * width), int(position.y * height)))
-    offset = pixel_location.x + pixel_location.y * width
+def get_pixel(image_pixels: npt.NDArray[np.float64], width: int, height: int, position: npt.NDArray[np.float64]) -> float:
+    pixel_location = position * (width, height)
+    offset = pixel_location[0] + pixel_location[1] * width
     return image_pixels[int(offset)]
 
-def set_pixel_blended(image_pixels, width, height, position, color):
-    pixel_location = Vector((int(position.x * width), int(position.y * height)))
-    offset = int(pixel_location.x + pixel_location.y * width)
+def set_pixel_blended(image_pixels: npt.NDArray[np.float64], width: int, height: int, position: npt.NDArray[np.float64], color: float) -> None:
+    pixel_location = position * (width, height)
+    offset = int(pixel_location[0] + pixel_location[1] * width)
     image_pixels[offset] = blend_overlay(image_pixels[offset], color)
     
 def blend_overlay(value_a: float, value_b: float) -> float:
-    return (2 * value_a * value_b) if value_b else (1 - 2 * (1 - a) * (1 - b))
+    return (2 * value_a * value_b) if value_b else (1 - 2 * (1 - value_a) * (1 - value_b))
 
-def project_points_to_uv(original_mesh, triangulated_mesh, mesh_matrix_world, points, points_matrix_world):
-    projected = []
+def project_points_to_uv(
+        original_mesh: Any,
+        triangulated_mesh: dict,
+        mesh_matrix_world: npt.NDArray[np.float64],
+        points: Iterable[npt.NDArray[np.float64]],
+        points_matrix_world: npt.NDArray[np.float64],
+        ) -> list[npt.NDArray[np.float64]]:
+    
+    projected: list[npt.NDArray[np.float64]] = []
+
     for initial_point in points:
-        initial_point_pos = points_matrix_world @ initial_point.co
+        initial_point_pos = points_matrix_world @ initial_point
         closest_face = get_closest_face(initial_point_pos, triangulated_mesh, mesh_matrix_world)
         closest_face_verts = [v.co for v in closest_face.verts]
         
         # Barycentric conversion then interpolation.
-        # ChatGPT wrote all this code. I basically wrote none of it.
-        # It works perfectly.
-        # My career is doomed.
         triangle_a = np.array(closest_face_verts[0])
         triangle_b = np.array(closest_face_verts[1])
         triangle_c = np.array(closest_face_verts[2])
         
-        value_a = closest_face.loops[0][original_mesh.loops.layers.uv.active].uv
-        value_b = closest_face.loops[1][original_mesh.loops.layers.uv.active].uv
-        value_c = closest_face.loops[2][original_mesh.loops.layers.uv.active].uv
+        value_a = np.array(closest_face.loops[0][original_mesh.loops.layers.uv.active].uv)
+        value_b = np.array(closest_face.loops[1][original_mesh.loops.layers.uv.active].uv)
+        value_c = np.array(closest_face.loops[2][original_mesh.loops.layers.uv.active].uv)
         
         input_point = np.array(initial_point_pos)
         
         u, v, w = barycentric_coordinates(input_point, triangle_a, triangle_b, triangle_c)
-        interpolated = interpolate_point_barycentric(u, v, w, value_a, value_b, value_c)
-        final_uv = Vector(interpolated)
-        final_uv.freeze()
+        final_uv = interpolate_point_barycentric(u, v, w, value_a, value_b, value_c)
         
         projected.append(final_uv)
+    
     return projected
 
-def get_intersection_point(segment_a, segment_b) -> Optional[tuple[float, float, Vector]]:
+# TODO: perchance use numpy matrices to make this kewler
+def get_intersection_point(
+        segment_a: tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]],
+        segment_b: tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]
+        ) -> Optional[tuple[float, float, npt.NDArray[np.float64]]]:
+    
     m1 = segment_a[1] - segment_a[0]
     b1 = segment_a[0]
     m2 = segment_b[1] - segment_b[0]
     b2 = segment_b[0]
     
-    denom = (m2.x * m1.y - m1.x * m2.y)
+    denom = (m2[0] * m1[1] - m1[0] * m2[1])
     if denom == 0:
         return None
     det = 1.0 / denom
     
     b2b1 = b2 - b1
-    t1 = det * (m2.x * b2b1.y - m2.y * b2b1.x)
-    t2 = det * (m1.x * b2b1.y - m1.y * b2b1.x)
+    t1 = det * (m2[0] * b2b1[1] - m2[1] * b2b1[0])
+    t2 = det * (m1[0] * b2b1[1] - m1[1] * b2b1[0])
     
     return (t1, t2, m1 * t1 + b1)
 
-def close_2d_shape(points: list[Vector]) -> list[Vector]:
+def close_2d_shape(points: Iterable[npt.NDArray[np.float64]]) -> list[npt.NDArray[np.float64]]:
     # close the loop temporarily by adding a closing edge
-    final_points = points[:] + [points[0]]
+    points = list(points)
+    points.append(points[0])
     
     # can't do anything on the first point
     for i in range(1, len(points)):
@@ -177,19 +200,26 @@ def close_2d_shape(points: list[Vector]) -> list[Vector]:
             # return only the points in the loop
             return points[j-1:i+1]
     # there was no intersection found, so the basic loop can be returned
-    return final_points
+    return points
 
-def find_2d_shape_center(points: list[Vector]) -> Vector:
-    return sum(points, start=Vector((0.0, 0.0))) / len(points)
+def find_2d_shape_center(points: list[npt.NDArray[np.float64]]) -> npt.NDArray[np.float64]:
+    return sum(points, start=np.array([0.0, 0.0])) / len(points)
 
-def find_2d_furthest_distance_squared(pos: Vector, points: list[Vector]) -> float:
-    return max(points, key=lambda point: (pos - point).length_squared)
+def find_2d_furthest_distance_squared(pos: npt.NDArray[np.float64], points: list[npt.NDArray[np.float64]]) -> float:
+    distances = [pos - point for point in points]
+    return max(map(lambda vec: vec.dot(vec), distances))
 
-def find_value_inside_shape(position: Vector, center: Vector, max_distance_squared: float, points: list[Vector]) -> float:
+def find_value_inside_shape(
+        position: npt.NDArray[np.float64],
+        center: npt.NDArray[np.float64],
+        max_distance_squared: float,
+        points: list[npt.NDArray[np.float64]]
+        ) -> float:
+    
     distance = position - center
     
     # optimization, don't need to check all points
-    if distance.length_squared > max_distance_squared:
+    if distance.dot(distance) > max_distance_squared:
         return None
     
     ray_vec = (center, position)
