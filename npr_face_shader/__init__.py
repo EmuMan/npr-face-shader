@@ -20,6 +20,7 @@ try:
     from .interface import *
 
     classes = [
+        FaceShadeProps,
         ComputeFaceShadows,
         FaceShadePanel,
     ]
@@ -30,8 +31,13 @@ except ImportError:
 def register():
     for bpy_class in classes:
         bpy.utils.register_class(bpy_class)
+    bpy.types.Object.face_shade_props = bpy.props.PointerProperty(type=FaceShadeProps)
 
 def unregister():
+    try:
+        del bpy.types.Object.face_shade_props
+    except AttributeError:
+        pass
     for bpy_class in classes:
         bpy.utils.unregister_class(bpy_class)
 
