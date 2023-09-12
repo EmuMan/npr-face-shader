@@ -25,21 +25,21 @@ def create_face_shadow_map(operator: bpy.types.Operator, pool: Pool):
     face_lines_strokes = face_lines_layer.frames[0].strokes
     face_lines_matrix_world = np.array(face_lines_obj.matrix_world)[0:3, 0:3]
     
-    nose_line_obj = props.shadow_shapes
-    if not verify_property(nose_line_obj, bpy.types.GreasePencil):
+    shadow_shapes_obj = props.shadow_shapes
+    if not verify_property(shadow_shapes_obj, bpy.types.GreasePencil):
         operator.report({'ERROR'}, 'Shadow shapes must be a valid grease pencil.')
         return
-    nose_line_layer = nose_line_obj.data.layers[0]
-    nose_line_stroke = nose_line_layer.frames[0].strokes[0]
-    nose_line_matrix_world = np.array(nose_line_obj.matrix_world)[0:3, 0:3]
+    shadow_shapes_layer = shadow_shapes_obj.data.layers[0]
+    shadow_shapes_strokes = shadow_shapes_layer.frames[0].strokes
+    shadow_shapes_matrix_world = np.array(shadow_shapes_obj.matrix_world)[0:3, 0:3]
     
-    rembrandt_line_obj = props.highlight_shapes
-    if not verify_property(rembrandt_line_obj, bpy.types.GreasePencil):
+    highlight_shapes_obj = props.highlight_shapes
+    if not verify_property(highlight_shapes_obj, bpy.types.GreasePencil):
         operator.report({'ERROR'}, 'Highlight shapes must be a valid grease pencil.')
         return
-    rembrandt_line_layer = rembrandt_line_obj.data.layers[0]
-    rembrandt_line_stroke = rembrandt_line_layer.frames[0].strokes[0]
-    rembrandt_line_matrix_world = np.array(rembrandt_line_obj.matrix_world)[0:3, 0:3]
+    highlight_shapes_layer = highlight_shapes_obj.data.layers[0]
+    highlight_shapes_strokes = highlight_shapes_layer.frames[0].strokes
+    highlight_shapes_matrix_world = np.array(highlight_shapes_obj.matrix_world)[0:3, 0:3]
 
     blur_size = props.blur_size
     
@@ -95,65 +95,71 @@ def create_face_shadow_map(operator: bpy.types.Operator, pool: Pool):
     base_pixel_calculator = BasePixelCalculator(width, height, intersection_points)
     image_pixels[:] = pool.map(base_pixel_calculator, range(width * height))
 
-    nose_on_image = []
-    operator.report({'INFO'}, 'Mapping nose stroke to UV coordinates...')
-    nose_line_stroke_points = [np.array(point.co) for point in nose_line_stroke.points]
-    nose_on_image = project_points_to_uv(
-        triangulated_mesh=simplified_target_mesh,
-        mesh_matrix_world=target_matrix_world,
-        points=nose_line_stroke_points,
-        points_matrix_world=nose_line_matrix_world,
-    )
+    shadow_shapes_on_image: list[list[npt.NDArray[np.float64]]] = []
+    operator.report({'INFO'}, 'Mapping shadow shapes to UV coordinates...')
+    for stroke in shadow_shapes_strokes:
+        shadow_shape_stroke_points = [np.array(point.co) for point in stroke.points]
+        projected_points = project_points_to_uv(
+            triangulated_mesh=simplified_target_mesh,
+            mesh_matrix_world=target_matrix_world,
+            points=shadow_shape_stroke_points,
+            points_matrix_world=shadow_shapes_matrix_world,
+        )
+        shadow_shapes_on_image.append(projected_points)
     
-    operator.report({'INFO'}, 'Closing off nose shape...')
-    nose_on_image = close_2d_shape(nose_on_image)
+    operator.report({'INFO'}, 'Closing off shadow shapes...')
+    shadow_shapes_on_image[:] = [close_2d_shape(shape) for shape in shadow_shapes_on_image]
     
-    operator.report({'INFO'}, 'Calculating nose pixels...')
-    nose_center = find_2d_shape_center(nose_on_image)
-    nose_max_distance_squared = find_2d_furthest_distance_squared(nose_center, nose_on_image)
-    
-    nose_pixel_calculator = ShapePixelCalculator(
-        width=width,
-        height=height,
-        shape_center=nose_center,
-        shape_max_distance_squared=nose_max_distance_squared,
-        shape_points=nose_on_image,
-    )
+    operator.report({'INFO'}, 'Calculating shadow pixels...')
+    for shape in shadow_shapes_on_image:
+        shape_center = find_2d_shape_center(shape) 
+        shape_max_distance_squared = find_2d_furthest_distance_squared(shape_center, shape)
+        
+        pixel_calculator = ShapePixelCalculator(
+            width=width,
+            height=height,
+            shape_center=shape_center,
+            shape_max_distance_squared=shape_max_distance_squared,
+            shape_points=shape,
+        )
 
-    nose_pixels = pool.map(nose_pixel_calculator, range(width * height))
-    for i, value in enumerate(nose_pixels):
-        if value is not None:
-            set_pixel_blended(image_pixels, i, value ** 2 / 2.0)
+        shadow_pixels = pool.map(pixel_calculator, range(width * height))
+        for i, value in enumerate(shadow_pixels):
+            if value is not None:
+                set_pixel_blended(image_pixels, i, value ** 2 / 2.0)
     
-    rembrandt_on_image = []
-    operator.report({'INFO'}, 'Mapping Rembrandt stroke to UV coordinates...')
-    rembrandt_line_stroke_points = [np.array(point.co) for point in rembrandt_line_stroke.points]
-    rembrandt_on_image = project_points_to_uv(
-        triangulated_mesh=simplified_target_mesh,
-        mesh_matrix_world=target_matrix_world,
-        points=rembrandt_line_stroke_points,
-        points_matrix_world=rembrandt_line_matrix_world,
-    )
+    highlight_shapes_on_image: list[list[npt.NDArray[np.float64]]] = []
+    operator.report({'INFO'}, 'Mapping highlight shapes to UV coordinates...')
+    for stroke in highlight_shapes_strokes:
+        highlight_shape_stroke_points = [np.array(point.co) for point in stroke.points]
+        projected_points = project_points_to_uv(
+            triangulated_mesh=simplified_target_mesh,
+            mesh_matrix_world=target_matrix_world,
+            points=highlight_shape_stroke_points,
+            points_matrix_world=highlight_shapes_matrix_world,
+        )
+        highlight_shapes_on_image.append(projected_points)
     
-    operator.report({'INFO'}, 'Closing off Rembrandt shape...')
-    rembrandt_on_image = close_2d_shape(rembrandt_on_image)
+    operator.report({'INFO'}, 'Closing off shadow shapes...')
+    highlight_shapes_on_image[:] = [close_2d_shape(shape) for shape in highlight_shapes_on_image]
     
-    operator.report({'INFO'}, 'Calculating Rembrandt pixels...')
-    rembrandt_center = find_2d_shape_center(rembrandt_on_image)
-    rembrandt_max_distance_squared = find_2d_furthest_distance_squared(rembrandt_center, rembrandt_on_image)
+    operator.report({'INFO'}, 'Calculating shadow pixels...')
+    for shape in highlight_shapes_on_image:
+        shape_center = find_2d_shape_center(shape)
+        shape_max_distance_squared = find_2d_furthest_distance_squared(shape_center, shape)
 
-    rembrandt_pixel_calculator = ShapePixelCalculator(
-        width=width,
-        height=height,
-        shape_center=rembrandt_center,
-        shape_max_distance_squared=rembrandt_max_distance_squared,
-        shape_points=rembrandt_on_image,
-    )
-    
-    rembrandt_pixels = pool.map(rembrandt_pixel_calculator, range(width * height))
-    for i, value in enumerate(rembrandt_pixels):
-        if value is not None:
-            set_pixel_blended(image_pixels, i, (1 - value ** 2) / 2.0 + 0.5)
+        pixel_calculator = ShapePixelCalculator(
+            width=width,
+            height=height,
+            shape_center=shape_center,
+            shape_max_distance_squared=shape_max_distance_squared,
+            shape_points=shape,
+        )
+        
+        highlight_pixels = pool.map(pixel_calculator, range(width * height))
+        for i, value in enumerate(highlight_pixels):
+            if value is not None:
+                set_pixel_blended(image_pixels, i, (1 - value ** 2) / 2.0 + 0.5)
 
     operator.report({'INFO'}, 'Blurring final result...')
     gaussian_kernel = build_box_kernel(blur_size)
