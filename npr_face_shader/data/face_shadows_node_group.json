@@ -175,7 +175,9 @@
             "use_custom_color": false,
             "width": 594.0,
             "width_hidden": 0.0,
-            "type": "NodeFrame"
+            "type": "NodeFrame",
+            "input_defaults": [],
+            "output_defaults": []
         },
         {
             "color": [
@@ -203,7 +205,9 @@
             "use_custom_color": false,
             "width": 384.0,
             "width_hidden": 0.0,
-            "type": "NodeFrame"
+            "type": "NodeFrame",
+            "input_defaults": [],
+            "output_defaults": []
         },
         {
             "color": [
@@ -231,7 +235,9 @@
             "use_custom_color": false,
             "width": 421.0,
             "width_hidden": 0.0,
-            "type": "NodeFrame"
+            "type": "NodeFrame",
+            "input_defaults": [],
+            "output_defaults": []
         },
         {
             "color": [
@@ -259,34 +265,9 @@
             "use_custom_color": false,
             "width": 724.0,
             "width_hidden": 0.0,
-            "type": "NodeFrame"
-        },
-        {
-            "color": [
-                0.6079999804496765,
-                0.6079999804496765,
-                0.6079999804496765
-            ],
-            "height": 100.0,
-            "hide": false,
-            "label": "",
-            "location": [
-                -1405.57080078125,
-                51.52140426635742
-            ],
-            "mute": false,
-            "name": "Math.013",
-            "operation": "ADD",
-            "parent": 0,
-            "select": false,
-            "show_options": true,
-            "show_preview": false,
-            "show_texture": false,
-            "use_clamp": false,
-            "use_custom_color": false,
-            "width": 140.0,
-            "width_hidden": 0.0,
-            "type": "ShaderNodeMath"
+            "type": "NodeFrame",
+            "input_defaults": [],
+            "output_defaults": []
         },
         {
             "color": [
@@ -313,7 +294,15 @@
             "use_custom_color": false,
             "width": 140.0,
             "width_hidden": 0.0,
-            "type": "ShaderNodeMath"
+            "type": "ShaderNodeMath",
+            "input_defaults": [
+                0.5,
+                0.5,
+                0.5
+            ],
+            "output_defaults": [
+                0.0
+            ]
         },
         {
             "color": [
@@ -338,7 +327,39 @@
             "use_custom_color": false,
             "width": 140.0,
             "width_hidden": 0.0,
-            "type": "NodeGroupInput"
+            "type": "NodeGroupInput",
+            "input_defaults": [],
+            "output_defaults": [
+                0.0,
+                0.0,
+                0.0,
+                [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                [
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                0.5,
+                null
+            ]
         },
         {
             "color": [
@@ -363,61 +384,9 @@
             "use_custom_color": false,
             "width": 16.0,
             "width_hidden": 0.0,
-            "type": "NodeReroute"
-        },
-        {
-            "color": [
-                0.6079999804496765,
-                0.6079999804496765,
-                0.6079999804496765
-            ],
-            "height": 100.0,
-            "hide": false,
-            "label": "",
-            "location": [
-                -211.9303436279297,
-                31.670703887939453
-            ],
-            "mute": false,
-            "name": "Math.005",
-            "operation": "PINGPONG",
-            "parent": 1,
-            "select": false,
-            "show_options": true,
-            "show_preview": false,
-            "show_texture": false,
-            "use_clamp": false,
-            "use_custom_color": false,
-            "width": 140.0,
-            "width_hidden": 0.0,
-            "type": "ShaderNodeMath"
-        },
-        {
-            "color": [
-                0.6079999804496765,
-                0.6079999804496765,
-                0.6079999804496765
-            ],
-            "height": 100.0,
-            "hide": false,
-            "label": "",
-            "location": [
-                -27.560420989990234,
-                31.756786346435547
-            ],
-            "mute": false,
-            "name": "Math.006",
-            "operation": "DIVIDE",
-            "parent": 1,
-            "select": false,
-            "show_options": true,
-            "show_preview": false,
-            "show_texture": false,
-            "use_clamp": false,
-            "use_custom_color": false,
-            "width": 140.0,
-            "width_hidden": 0.0,
-            "type": "ShaderNodeMath"
+            "type": "NodeReroute",
+            "input_defaults": [],
+            "output_defaults": []
         },
         {
             "color": [
@@ -442,7 +411,39 @@
             "use_custom_color": false,
             "width": 140.0,
             "width_hidden": 0.0,
-            "type": "NodeGroupInput"
+            "type": "NodeGroupInput",
+            "input_defaults": [],
+            "output_defaults": [
+                0.5,
+                0.0,
+                0.0,
+                [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                0.5,
+                null
+            ]
         },
         {
             "color": [
@@ -468,7 +469,18 @@
             "use_custom_color": false,
             "width": 140.0,
             "width_hidden": 0.0,
-            "type": "NodeGroupOutput"
+            "type": "NodeGroupOutput",
+            "input_defaults": [
+                [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                0.0,
+                null
+            ],
+            "output_defaults": []
         },
         {
             "color": [
@@ -493,7 +505,9 @@
             "use_custom_color": false,
             "width": 16.0,
             "width_hidden": 0.0,
-            "type": "NodeReroute"
+            "type": "NodeReroute",
+            "input_defaults": [],
+            "output_defaults": []
         },
         {
             "color": [
@@ -518,34 +532,9 @@
             "use_custom_color": false,
             "width": 16.0,
             "width_hidden": 0.0,
-            "type": "NodeReroute"
-        },
-        {
-            "color": [
-                0.6079999804496765,
-                0.6079999804496765,
-                0.6079999804496765
-            ],
-            "height": 100.0,
-            "hide": false,
-            "label": "",
-            "location": [
-                19.260101318359375,
-                360.571044921875
-            ],
-            "mute": false,
-            "name": "Math.004",
-            "operation": "POWER",
-            "parent": 2,
-            "select": false,
-            "show_options": true,
-            "show_preview": false,
-            "show_texture": false,
-            "use_clamp": false,
-            "use_custom_color": false,
-            "width": 140.0,
-            "width_hidden": 0.0,
-            "type": "ShaderNodeMath"
+            "type": "NodeReroute",
+            "input_defaults": [],
+            "output_defaults": []
         },
         {
             "color": [
@@ -570,34 +559,39 @@
             "use_custom_color": false,
             "width": 140.0,
             "width_hidden": 0.0,
-            "type": "NodeGroupInput"
-        },
-        {
-            "color": [
-                0.6079999804496765,
-                0.6079999804496765,
-                0.6079999804496765
-            ],
-            "height": 100.0,
-            "hide": false,
-            "label": "",
-            "location": [
-                240.8935546875,
-                363.3075256347656
-            ],
-            "mute": false,
-            "name": "Math",
-            "operation": "GREATER_THAN",
-            "parent": 2,
-            "select": false,
-            "show_options": true,
-            "show_preview": false,
-            "show_texture": false,
-            "use_clamp": false,
-            "use_custom_color": false,
-            "width": 140.0,
-            "width_hidden": 0.0,
-            "type": "ShaderNodeMath"
+            "type": "NodeGroupInput",
+            "input_defaults": [],
+            "output_defaults": [
+                0.5,
+                0.0,
+                0.0,
+                [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                0.5,
+                null
+            ]
         },
         {
             "blend_type": "MIX",
@@ -627,7 +621,333 @@
             "use_custom_color": false,
             "width": 140.0,
             "width_hidden": 0.0,
-            "type": "ShaderNodeMix"
+            "type": "ShaderNodeMix",
+            "input_defaults": [
+                0.5,
+                [
+                    0.5,
+                    0.5,
+                    0.5
+                ],
+                0.0,
+                0.0,
+                [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                [
+                    0.5,
+                    0.5,
+                    0.5,
+                    1.0
+                ],
+                [
+                    0.5,
+                    0.5,
+                    0.5,
+                    1.0
+                ]
+            ],
+            "output_defaults": [
+                0.0,
+                [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            ]
+        },
+        {
+            "color": [
+                0.6079999804496765,
+                0.6079999804496765,
+                0.6079999804496765
+            ],
+            "height": 100.0,
+            "hide": false,
+            "label": "",
+            "location": [
+                -403.9618225097656,
+                361.61517333984375
+            ],
+            "mute": false,
+            "name": "Math.003",
+            "operation": "LESS_THAN",
+            "parent": 3,
+            "select": false,
+            "show_options": true,
+            "show_preview": false,
+            "show_texture": false,
+            "use_clamp": false,
+            "use_custom_color": false,
+            "width": 140.0,
+            "width_hidden": 0.0,
+            "type": "ShaderNodeMath",
+            "input_defaults": [
+                0.5,
+                0.5,
+                0.5
+            ],
+            "output_defaults": [
+                0.0
+            ]
+        },
+        {
+            "color": [
+                0.6079999804496765,
+                0.6079999804496765,
+                0.6079999804496765
+            ],
+            "height": 100.0,
+            "hide": false,
+            "label": "",
+            "location": [
+                -749.9806518554688,
+                363.32598876953125
+            ],
+            "mute": false,
+            "name": "Math.001",
+            "operation": "DIVIDE",
+            "parent": 3,
+            "select": false,
+            "show_options": true,
+            "show_preview": false,
+            "show_texture": false,
+            "use_clamp": false,
+            "use_custom_color": false,
+            "width": 140.0,
+            "width_hidden": 0.0,
+            "type": "ShaderNodeMath",
+            "input_defaults": [
+                0.5,
+                6.2831854820251465,
+                0.5
+            ],
+            "output_defaults": [
+                0.0
+            ]
+        },
+        {
+            "color": [
+                0.6079999804496765,
+                0.6079999804496765,
+                0.6079999804496765
+            ],
+            "height": 100.0,
+            "hide": false,
+            "label": "",
+            "location": [
+                19.260101318359375,
+                360.571044921875
+            ],
+            "mute": false,
+            "name": "Math.004",
+            "operation": "POWER",
+            "parent": 2,
+            "select": false,
+            "show_options": true,
+            "show_preview": false,
+            "show_texture": false,
+            "use_clamp": false,
+            "use_custom_color": false,
+            "width": 140.0,
+            "width_hidden": 0.0,
+            "type": "ShaderNodeMath",
+            "input_defaults": [
+                0.5,
+                0.5,
+                0.5
+            ],
+            "output_defaults": [
+                0.0
+            ]
+        },
+        {
+            "color": [
+                0.6079999804496765,
+                0.6079999804496765,
+                0.6079999804496765
+            ],
+            "height": 100.0,
+            "hide": false,
+            "label": "",
+            "location": [
+                240.8935546875,
+                363.3075256347656
+            ],
+            "mute": false,
+            "name": "Math",
+            "operation": "GREATER_THAN",
+            "parent": 2,
+            "select": false,
+            "show_options": true,
+            "show_preview": false,
+            "show_texture": false,
+            "use_clamp": false,
+            "use_custom_color": false,
+            "width": 140.0,
+            "width_hidden": 0.0,
+            "type": "ShaderNodeMath",
+            "input_defaults": [
+                0.5,
+                1.7000000476837158,
+                0.5
+            ],
+            "output_defaults": [
+                0.0
+            ]
+        },
+        {
+            "color": [
+                0.6079999804496765,
+                0.6079999804496765,
+                0.6079999804496765
+            ],
+            "height": 100.0,
+            "hide": false,
+            "label": "",
+            "location": [
+                -27.560420989990234,
+                31.756786346435547
+            ],
+            "mute": false,
+            "name": "Math.006",
+            "operation": "DIVIDE",
+            "parent": 1,
+            "select": false,
+            "show_options": true,
+            "show_preview": false,
+            "show_texture": false,
+            "use_clamp": false,
+            "use_custom_color": false,
+            "width": 140.0,
+            "width_hidden": 0.0,
+            "type": "ShaderNodeMath",
+            "input_defaults": [
+                0.5,
+                3.1415927410125732,
+                0.5
+            ],
+            "output_defaults": [
+                0.0
+            ]
+        },
+        {
+            "color": [
+                0.6079999804496765,
+                0.6079999804496765,
+                0.6079999804496765
+            ],
+            "height": 100.0,
+            "hide": false,
+            "label": "",
+            "location": [
+                -211.9303436279297,
+                31.670703887939453
+            ],
+            "mute": false,
+            "name": "Math.005",
+            "operation": "PINGPONG",
+            "parent": 1,
+            "select": false,
+            "show_options": true,
+            "show_preview": false,
+            "show_texture": false,
+            "use_clamp": false,
+            "use_custom_color": false,
+            "width": 140.0,
+            "width_hidden": 0.0,
+            "type": "ShaderNodeMath",
+            "input_defaults": [
+                0.5,
+                3.1415927410125732,
+                0.5
+            ],
+            "output_defaults": [
+                0.0
+            ]
+        },
+        {
+            "color": [
+                0.6079999804496765,
+                0.6079999804496765,
+                0.6079999804496765
+            ],
+            "height": 100.0,
+            "hide": false,
+            "label": "",
+            "location": [
+                -1405.57080078125,
+                51.52140426635742
+            ],
+            "mute": false,
+            "name": "Math.013",
+            "operation": "ADD",
+            "parent": 0,
+            "select": false,
+            "show_options": true,
+            "show_preview": false,
+            "show_texture": false,
+            "use_clamp": false,
+            "use_custom_color": false,
+            "width": 140.0,
+            "width_hidden": 0.0,
+            "type": "ShaderNodeMath",
+            "input_defaults": [
+                0.5,
+                0.5,
+                0.5
+            ],
+            "output_defaults": [
+                0.0
+            ]
+        },
+        {
+            "color": [
+                0.6079999804496765,
+                0.6079999804496765,
+                0.6079999804496765
+            ],
+            "height": 100.0,
+            "hide": false,
+            "label": "",
+            "location": [
+                -575.8430786132812,
+                352.24615478515625
+            ],
+            "mute": false,
+            "name": "Math.002",
+            "operation": "FRACT",
+            "parent": 3,
+            "select": false,
+            "show_options": true,
+            "show_preview": false,
+            "show_texture": false,
+            "use_clamp": false,
+            "use_custom_color": false,
+            "width": 140.0,
+            "width_hidden": 0.0,
+            "type": "ShaderNodeMath",
+            "input_defaults": [
+                0.5,
+                0.5,
+                0.5
+            ],
+            "output_defaults": [
+                0.0
+            ]
         },
         {
             "blend_type": "MIX",
@@ -657,101 +977,58 @@
             "use_custom_color": false,
             "width": 140.0,
             "width_hidden": 0.0,
-            "type": "ShaderNodeMix"
-        },
-        {
-            "color": [
-                0.6079999804496765,
-                0.6079999804496765,
-                0.6079999804496765
+            "type": "ShaderNodeMix",
+            "input_defaults": [
+                0.5,
+                [
+                    0.5,
+                    0.5,
+                    0.5
+                ],
+                0.0,
+                0.0,
+                [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                [
+                    0.5,
+                    0.5,
+                    0.5,
+                    1.0
+                ],
+                [
+                    0.5,
+                    0.5,
+                    0.5,
+                    1.0
+                ]
             ],
-            "height": 100.0,
-            "hide": false,
-            "label": "",
-            "location": [
-                -575.8430786132812,
-                352.24615478515625
-            ],
-            "mute": false,
-            "name": "Math.002",
-            "operation": "FRACT",
-            "parent": 3,
-            "select": false,
-            "show_options": true,
-            "show_preview": false,
-            "show_texture": false,
-            "use_clamp": false,
-            "use_custom_color": false,
-            "width": 140.0,
-            "width_hidden": 0.0,
-            "type": "ShaderNodeMath"
-        },
-        {
-            "color": [
-                0.6079999804496765,
-                0.6079999804496765,
-                0.6079999804496765
-            ],
-            "height": 100.0,
-            "hide": false,
-            "label": "",
-            "location": [
-                -403.9618225097656,
-                361.61517333984375
-            ],
-            "mute": false,
-            "name": "Math.003",
-            "operation": "LESS_THAN",
-            "parent": 3,
-            "select": false,
-            "show_options": true,
-            "show_preview": false,
-            "show_texture": false,
-            "use_clamp": false,
-            "use_custom_color": false,
-            "width": 140.0,
-            "width_hidden": 0.0,
-            "type": "ShaderNodeMath"
-        },
-        {
-            "color": [
-                0.6079999804496765,
-                0.6079999804496765,
-                0.6079999804496765
-            ],
-            "height": 100.0,
-            "hide": false,
-            "label": "",
-            "location": [
-                -749.9806518554688,
-                363.32598876953125
-            ],
-            "mute": false,
-            "name": "Math.001",
-            "operation": "DIVIDE",
-            "parent": 3,
-            "select": false,
-            "show_options": true,
-            "show_preview": false,
-            "show_texture": false,
-            "use_clamp": false,
-            "use_custom_color": false,
-            "width": 140.0,
-            "width_hidden": 0.0,
-            "type": "ShaderNodeMath"
+            "output_defaults": [
+                0.0,
+                [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            ]
         }
     ],
     "links": [
         {
-            "from_node": 21,
-            "from_socket": 0,
-            "is_muted": false,
-            "is_valid": true,
-            "to_node": 19,
-            "to_socket": 0
-        },
-        {
-            "from_node": 19,
+            "from_node": 14,
             "from_socket": 0,
             "is_muted": false,
             "is_valid": true,
@@ -759,11 +1036,19 @@
             "to_socket": 0
         },
         {
-            "from_node": 17,
+            "from_node": 20,
+            "from_socket": 0,
+            "is_muted": false,
+            "is_valid": true,
+            "to_node": 13,
+            "to_socket": 0
+        },
+        {
+            "from_node": 12,
             "from_socket": 2,
             "is_muted": false,
             "is_valid": true,
-            "to_node": 11,
+            "to_node": 8,
             "to_socket": 0
         },
         {
@@ -771,63 +1056,7 @@
             "from_socket": 0,
             "is_muted": false,
             "is_valid": true,
-            "to_node": 17,
-            "to_socket": 0
-        },
-        {
-            "from_node": 10,
-            "from_socket": 0,
-            "is_muted": false,
-            "is_valid": true,
-            "to_node": 5,
-            "to_socket": 0
-        },
-        {
-            "from_node": 10,
-            "from_socket": 1,
-            "is_muted": false,
-            "is_valid": true,
-            "to_node": 5,
-            "to_socket": 1
-        },
-        {
-            "from_node": 5,
-            "from_socket": 0,
-            "is_muted": false,
-            "is_valid": true,
-            "to_node": 4,
-            "to_socket": 0
-        },
-        {
-            "from_node": 10,
-            "from_socket": 2,
-            "is_muted": false,
-            "is_valid": true,
-            "to_node": 4,
-            "to_socket": 1
-        },
-        {
-            "from_node": 15,
-            "from_socket": 6,
-            "is_muted": false,
-            "is_valid": true,
-            "to_node": 17,
-            "to_socket": 6
-        },
-        {
-            "from_node": 15,
-            "from_socket": 5,
-            "is_muted": false,
-            "is_valid": true,
-            "to_node": 17,
-            "to_socket": 7
-        },
-        {
-            "from_node": 20,
-            "from_socket": 0,
-            "is_muted": false,
-            "is_valid": true,
-            "to_node": 18,
+            "to_node": 12,
             "to_socket": 0
         },
         {
@@ -835,11 +1064,51 @@
             "from_socket": 0,
             "is_muted": false,
             "is_valid": true,
-            "to_node": 8,
+            "to_node": 4,
             "to_socket": 0
         },
         {
+            "from_node": 7,
+            "from_socket": 1,
+            "is_muted": false,
+            "is_valid": true,
+            "to_node": 4,
+            "to_socket": 1
+        },
+        {
             "from_node": 4,
+            "from_socket": 0,
+            "is_muted": false,
+            "is_valid": true,
+            "to_node": 19,
+            "to_socket": 0
+        },
+        {
+            "from_node": 7,
+            "from_socket": 2,
+            "is_muted": false,
+            "is_valid": true,
+            "to_node": 19,
+            "to_socket": 1
+        },
+        {
+            "from_node": 11,
+            "from_socket": 6,
+            "is_muted": false,
+            "is_valid": true,
+            "to_node": 12,
+            "to_socket": 6
+        },
+        {
+            "from_node": 11,
+            "from_socket": 5,
+            "is_muted": false,
+            "is_valid": true,
+            "to_node": 12,
+            "to_socket": 7
+        },
+        {
+            "from_node": 13,
             "from_socket": 0,
             "is_muted": false,
             "is_valid": true,
@@ -847,15 +1116,87 @@
             "to_socket": 0
         },
         {
-            "from_node": 4,
+            "from_node": 6,
             "from_socket": 0,
             "is_muted": false,
             "is_valid": true,
-            "to_node": 7,
+            "to_node": 18,
             "to_socket": 0
         },
         {
-            "from_node": 8,
+            "from_node": 19,
+            "from_socket": 0,
+            "is_muted": false,
+            "is_valid": true,
+            "to_node": 14,
+            "to_socket": 0
+        },
+        {
+            "from_node": 19,
+            "from_socket": 0,
+            "is_muted": false,
+            "is_valid": true,
+            "to_node": 6,
+            "to_socket": 0
+        },
+        {
+            "from_node": 18,
+            "from_socket": 0,
+            "is_muted": false,
+            "is_valid": true,
+            "to_node": 17,
+            "to_socket": 0
+        },
+        {
+            "from_node": 17,
+            "from_socket": 0,
+            "is_muted": false,
+            "is_valid": true,
+            "to_node": 16,
+            "to_socket": 1
+        },
+        {
+            "from_node": 21,
+            "from_socket": 2,
+            "is_muted": false,
+            "is_valid": true,
+            "to_node": 15,
+            "to_socket": 0
+        },
+        {
+            "from_node": 15,
+            "from_socket": 0,
+            "is_muted": false,
+            "is_valid": true,
+            "to_node": 16,
+            "to_socket": 0
+        },
+        {
+            "from_node": 5,
+            "from_socket": 3,
+            "is_muted": false,
+            "is_valid": true,
+            "to_node": 21,
+            "to_socket": 7
+        },
+        {
+            "from_node": 5,
+            "from_socket": 4,
+            "is_muted": false,
+            "is_valid": true,
+            "to_node": 21,
+            "to_socket": 6
+        },
+        {
+            "from_node": 5,
+            "from_socket": 7,
+            "is_muted": false,
+            "is_valid": true,
+            "to_node": 15,
+            "to_socket": 1
+        },
+        {
+            "from_node": 16,
             "from_socket": 0,
             "is_muted": false,
             "is_valid": true,
@@ -867,71 +1208,15 @@
             "from_socket": 0,
             "is_muted": false,
             "is_valid": true,
-            "to_node": 16,
-            "to_socket": 1
-        },
-        {
-            "from_node": 18,
-            "from_socket": 2,
-            "is_muted": false,
-            "is_valid": true,
-            "to_node": 14,
+            "to_node": 10,
             "to_socket": 0
         },
         {
-            "from_node": 14,
+            "from_node": 10,
             "from_socket": 0,
             "is_muted": false,
             "is_valid": true,
-            "to_node": 16,
-            "to_socket": 0
-        },
-        {
-            "from_node": 6,
-            "from_socket": 3,
-            "is_muted": false,
-            "is_valid": true,
-            "to_node": 18,
-            "to_socket": 7
-        },
-        {
-            "from_node": 6,
-            "from_socket": 4,
-            "is_muted": false,
-            "is_valid": true,
-            "to_node": 18,
-            "to_socket": 6
-        },
-        {
-            "from_node": 6,
-            "from_socket": 7,
-            "is_muted": false,
-            "is_valid": true,
-            "to_node": 14,
-            "to_socket": 1
-        },
-        {
-            "from_node": 16,
-            "from_socket": 0,
-            "is_muted": false,
-            "is_valid": true,
-            "to_node": 12,
-            "to_socket": 0
-        },
-        {
-            "from_node": 12,
-            "from_socket": 0,
-            "is_muted": false,
-            "is_valid": true,
-            "to_node": 13,
-            "to_socket": 0
-        },
-        {
-            "from_node": 13,
-            "from_socket": 0,
-            "is_muted": false,
-            "is_valid": true,
-            "to_node": 11,
+            "to_node": 8,
             "to_socket": 1
         }
     ]

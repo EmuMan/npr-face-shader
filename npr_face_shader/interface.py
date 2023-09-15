@@ -1,8 +1,20 @@
 import bpy
 
 from multiprocessing.pool import Pool
+import json
+import os
 
 from . import functions
+from . import nodes
+
+
+NODE_GROUP_NAME = 'NPR Face Shadows'
+NODE_GROUP_FILE = 'data/face_shadows_node_group.json'
+DEFAULT_MATERIAL_NAME = 'NPR Face Shader'
+
+
+def get_absolute_path(relative_path: str) -> str:
+    return os.path.join(os.path.dirname(__file__), relative_path)
 
 class FaceShadeProps(bpy.types.PropertyGroup):
 
@@ -12,10 +24,12 @@ class FaceShadeProps(bpy.types.PropertyGroup):
     highlight_shapes: bpy.props.PointerProperty(name='Highlight Shapes', type=bpy.types.Object)
     output_image: bpy.props.PointerProperty(name='Output Image', type=bpy.types.Image)
     blur_size: bpy.props.IntProperty(name='Blur Size', default=25, min=1)
+    material_name: bpy.props.StringProperty(name='Material Name', default=DEFAULT_MATERIAL_NAME)
 
 class ComputeFaceShadows(bpy.types.Operator):
     bl_idname = 'object.npr_shade_face'
     bl_label = 'NPR Shade Face'
+    bl_description = 'Use the specified lines and parameters to generate a custom face shadow image.'
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -26,6 +40,61 @@ class ComputeFaceShadows(bpy.types.Operator):
     def execute(self, context):
         with Pool(processes=8) as pool:
             functions.create_face_shadow_map(self, pool)
+        bpy.ops.object.npr_shade_face_create_material()
+        props: FaceShadeProps = bpy.data.objects[0].face_shade_props
+        props.target.active_material = bpy.data.materials[props.material_name]
+        return {'FINISHED'}
+
+class CreateMaterialOnly(bpy.types.Operator):
+    bl_idname = 'object.npr_shade_face_create_material'
+    bl_label = 'NPR Shade Face Create Material Only'
+    bl_description = 'Create a new material set up with the required face shading node structure.'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def execute(self, context):
+        props: FaceShadeProps = bpy.data.objects[0].face_shade_props
+
+        if NODE_GROUP_NAME in bpy.data.node_groups:
+            node_group = bpy.data.node_groups[NODE_GROUP_NAME]
+        else:
+            with open(get_absolute_path(NODE_GROUP_FILE), 'r') as f:
+                node_group_data = json.load(f)
+                node_group = nodes.write_shader_node_group(NODE_GROUP_NAME, node_group_data)
+        
+        image = props.output_image # can be None
+        material_name = props.material_name
+
+        if material_name != '' and material_name not in bpy.data.materials:
+            nodes.create_material(material_name, node_group, image=image)
+            self.report({'INFO'}, 'Finished creating material!')
+        else:
+            self.report({'INFO'}, 'Material already exists, exiting operator.')
+        
+        return {'FINISHED'}
+
+class CreateNodeGroupOnly(bpy.types.Operator):
+    bl_idname = 'object.npr_shade_face_create_node_group'
+    bl_label = 'NPR Shade Face Create Node Group Only'
+    bl_description = 'Add a new node group to the project that allows for face shadow map usage.'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def execute(self, context):
+        if NODE_GROUP_NAME not in bpy.data.node_groups:
+            with open(get_absolute_path(NODE_GROUP_FILE), 'r') as f:
+                node_group_data = json.load(f)
+                nodes.write_shader_node_group(NODE_GROUP_NAME, node_group_data)
+            self.report({'INFO'}, 'Finished creating node group!')
+        else:
+            self.report({'INFO'}, 'Node group already exists, exiting operator.')
+        
         return {'FINISHED'}
 
 class FaceShadePanel(bpy.types.Panel):
@@ -47,7 +116,23 @@ class FaceShadePanel(bpy.types.Panel):
         col.row(align=True).prop(props, 'output_image', text='Output Image')
         col.row(align=True).prop(props, 'blur_size', text='Blur Size')
 
+        col.separator()
+
+        col.row(align=True).prop(props, 'material_name', text='Material Name')
+
+        col.separator()
+
         col.row(align=True).operator(
             operator=ComputeFaceShadows.bl_idname,
             text='Generate Face Shading'
+        )
+
+        col.row(align=True).operator(
+            operator=CreateMaterialOnly.bl_idname,
+            text='Create Material Only'
+        )
+
+        col.row(align=True).operator(
+            operator=CreateNodeGroupOnly.bl_idname,
+            text='Create Node Group Only'
         )
