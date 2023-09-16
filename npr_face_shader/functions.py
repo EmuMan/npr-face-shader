@@ -16,6 +16,18 @@ def create_face_shadow_map(operator: bpy.types.Operator, pool: Pool):
         operator.report({'ERROR'}, 'Target object must be a valid mesh.')
         return
     target_matrix_world = np.array(target_obj.matrix_world)[0:3, 0:3]
+
+    bm = bmesh.new()
+    bm.from_mesh(target_obj.data)
+
+    if props.uv_map_name == '':
+        uv_map = bm.loops.layers.uv.active
+    else:
+        try:
+            uv_map = bm.loops.layers.uv[props.uv_map_name]
+        except KeyError:
+            operator.report({'ERROR'}, 'Invalid UV map name for target mesh.')
+            return
     
     face_lines_obj = props.vertical_lines
     if not verify_property(face_lines_obj, bpy.types.GreasePencil):
@@ -54,14 +66,12 @@ def create_face_shadow_map(operator: bpy.types.Operator, pool: Pool):
     
     # mesh has to be triangulated for barycentric conversion to work
     operator.report({'INFO'}, 'Triangulating mesh...')
-    bm = bmesh.new()
-    bm.from_mesh(target_obj.data)
     triangulated = bmesh.ops.triangulate(bm, faces=bm.faces[:], quad_method='BEAUTY', ngon_method='BEAUTY')
-    
+
     simplified_target_mesh: list[Simple3DFace] = []
     for face in triangulated['faces']:
         simplified_target_mesh.append(Simple3DFace(
-            uvs=[np.array(loop[bm.loops.layers.uv.active].uv) for loop in face.loops],
+            uvs=[np.array(loop[uv_map].uv) for loop in face.loops],
             vertices=[np.array(vert.co) for vert in face.verts],
         ))
 

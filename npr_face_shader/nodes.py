@@ -46,7 +46,7 @@ def write_shader_node_group(name: str, data: dict[str, list[dict[str, Any]]]) ->
     
     return tree
 
-def create_material(name: str, shadows_node_tree: bpy.types.NodeTree, image: bpy.types.Image = None) -> None:
+def create_material(name: str, shadows_node_tree: bpy.types.NodeTree, image: bpy.types.Image = None, uv_map: str = '') -> None:
     new_material = bpy.data.materials.new(name=name)
     new_material.use_nodes = True
     new_material.node_tree.nodes.remove(new_material.node_tree.nodes[0])
@@ -56,8 +56,9 @@ def create_material(name: str, shadows_node_tree: bpy.types.NodeTree, image: bpy
     node_group.node_tree = shadows_node_tree
     material_output_node = new_material.node_tree.nodes['Material Output']
     material_output_node.location = mathutils.Vector((513.5494, 127.4066))
-    texture_coordinate_node = new_material.node_tree.nodes.new(type='ShaderNodeTexCoord')
-    texture_coordinate_node.location = mathutils.Vector((-487.1404, 143.6472))
+    uv_map_node = new_material.node_tree.nodes.new(type='ShaderNodeUVMap')
+    uv_map_node.location = mathutils.Vector((-487.1404, 143.6472))
+    uv_map_node.uv_map = uv_map
     mapping_normal_node = new_material.node_tree.nodes.new(type='ShaderNodeMapping')
     mapping_normal_node.location = mathutils.Vector((-239.7573, 424.1311))
     mapping_flipped_node = new_material.node_tree.nodes.new(type='ShaderNodeMapping')
@@ -70,8 +71,8 @@ def create_material(name: str, shadows_node_tree: bpy.types.NodeTree, image: bpy
     image_flipped_node.location = mathutils.Vector((-18.6186, -13.8533))
     image_flipped_node.image = image
     
-    new_material.node_tree.links.new(texture_coordinate_node.outputs[0], mapping_normal_node.inputs[0])
-    new_material.node_tree.links.new(texture_coordinate_node.outputs[0], mapping_flipped_node.inputs[0])
+    new_material.node_tree.links.new(uv_map_node.outputs[0], mapping_normal_node.inputs[0])
+    new_material.node_tree.links.new(uv_map_node.outputs[0], mapping_flipped_node.inputs[0])
     new_material.node_tree.links.new(mapping_normal_node.outputs[0], image_normal_node.inputs[0])
     new_material.node_tree.links.new(mapping_flipped_node.outputs[0], image_flipped_node.inputs[0])
     new_material.node_tree.links.new(image_normal_node.outputs[0], node_group.inputs[3])

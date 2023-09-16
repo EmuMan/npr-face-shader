@@ -25,6 +25,7 @@ class FaceShadeProps(bpy.types.PropertyGroup):
     output_image: bpy.props.PointerProperty(name='Output Image', type=bpy.types.Image)
     blur_size: bpy.props.IntProperty(name='Blur Size', default=25, min=1)
     material_name: bpy.props.StringProperty(name='Material Name', default=DEFAULT_MATERIAL_NAME)
+    uv_map_name: bpy.props.StringProperty(name='UV Map Name')
 
 class ComputeFaceShadows(bpy.types.Operator):
     bl_idname = 'object.npr_shade_face'
@@ -58,6 +59,16 @@ class CreateMaterialOnly(bpy.types.Operator):
     def execute(self, context):
         props: FaceShadeProps = bpy.data.objects[0].face_shade_props
 
+        if props.target == None:
+            uv_map = props.uv_map_name
+        elif props.uv_map_name == '':
+            uv_map = props.target.data.uv_layers.active.name
+        else:
+            try:
+                uv_map = props.target.data.uv_layers[props.uv_map_name].name
+            except KeyError:
+                self.report({'ERROR'}, 'Invalid UV map name for target mesh.')
+
         if NODE_GROUP_NAME in bpy.data.node_groups:
             node_group = bpy.data.node_groups[NODE_GROUP_NAME]
         else:
@@ -69,7 +80,7 @@ class CreateMaterialOnly(bpy.types.Operator):
         material_name = props.material_name
 
         if material_name != '' and material_name not in bpy.data.materials:
-            nodes.create_material(material_name, node_group, image=image)
+            nodes.create_material(material_name, node_group, image=image, uv_map=uv_map)
             self.report({'INFO'}, 'Finished creating material!')
         else:
             self.report({'INFO'}, 'Material already exists, exiting operator.')
@@ -119,6 +130,7 @@ class FaceShadePanel(bpy.types.Panel):
         col.separator()
 
         col.row(align=True).prop(props, 'material_name', text='Material Name')
+        col.row(align=True).prop(props, 'uv_map_name', text='UV Map Name')
 
         col.separator()
 
