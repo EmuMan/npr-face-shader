@@ -26,6 +26,8 @@ class FaceShadeProps(bpy.types.PropertyGroup):
     blur_size: bpy.props.IntProperty(name='Blur Size', default=25, min=1)
     material_name: bpy.props.StringProperty(name='Material Name', default=DEFAULT_MATERIAL_NAME)
     uv_map_name: bpy.props.StringProperty(name='UV Map Name')
+    sun_driver: bpy.props.PointerProperty(name='Sun Driver Target', type=bpy.types.Object)
+    head_driver: bpy.props.PointerProperty(name='Head Driver Target', type=bpy.types.Object)
 
 class ComputeFaceShadows(bpy.types.Operator):
     bl_idname = 'object.npr_shade_face'
@@ -80,7 +82,14 @@ class CreateMaterialOnly(bpy.types.Operator):
         material_name = props.material_name
 
         if material_name != '' and material_name not in bpy.data.materials:
-            nodes.create_material(material_name, node_group, image=image, uv_map=uv_map)
+            nodes.create_material(
+                material_name,
+                node_group,
+                image=image,
+                uv_map=uv_map,
+                sun_driver_obj=props.sun_driver,
+                head_driver_obj=props.head_driver,
+            )
             self.report({'INFO'}, 'Finished creating material!')
         else:
             self.report({'INFO'}, 'Material already exists, exiting operator.')
@@ -131,6 +140,12 @@ class FaceShadePanel(bpy.types.Panel):
 
         col.row(align=True).prop(props, 'material_name', text='Material Name')
         col.row(align=True).prop(props, 'uv_map_name', text='UV Map Name')
+
+        col.separator()
+
+        col.row(align=True).label(text='Driver Settings (Optional):')
+        col.row(align=True).prop(props, 'sun_driver', text='Sun Driver Target')
+        col.row(align=True).prop(props, 'head_driver', text='Head Driver Target')
 
         col.separator()
 

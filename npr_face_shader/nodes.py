@@ -7,6 +7,18 @@ def set_specified_attributes(target: Any, attributes: dict[str, Any]) -> None:
     for attribute, value in attributes.items():
         setattr(target, attribute, value)
 
+def create_z_rotation_driver(input_socket: bpy.types.NodeSocket, target_obj: bpy.types.Object):
+    fcurve = input_socket.driver_add('default_value')
+    driver = fcurve.driver
+    driver.type = 'SCRIPTED'
+    driver.expression = 'rot_z'
+    var = driver.variables.new()
+    var.name = 'rot_z'
+    target = var.targets[0]
+    target.id_type = 'OBJECT'
+    target.id = target_obj
+    target.data_path = 'rotation_euler[2]'
+
 def write_shader_node_group(name: str, data: dict[str, list[dict[str, Any]]]) -> bpy.types.NodeTree:
     tree = bpy.data.node_groups.new(name=name, type='ShaderNodeTree')
     
@@ -46,7 +58,14 @@ def write_shader_node_group(name: str, data: dict[str, list[dict[str, Any]]]) ->
     
     return tree
 
-def create_material(name: str, shadows_node_tree: bpy.types.NodeTree, image: bpy.types.Image = None, uv_map: str = '') -> None:
+def create_material(
+        name: str,
+        shadows_node_tree: bpy.types.NodeTree,
+        image: bpy.types.Image = None,
+        uv_map: str = '',
+        sun_driver_obj: bpy.types.Object = None,
+        head_driver_obj: bpy.types.Object = None,
+    ) -> None:
     new_material = bpy.data.materials.new(name=name)
     new_material.use_nodes = True
     new_material.node_tree.nodes.remove(new_material.node_tree.nodes[0])
@@ -78,3 +97,9 @@ def create_material(name: str, shadows_node_tree: bpy.types.NodeTree, image: bpy
     new_material.node_tree.links.new(image_normal_node.outputs[0], node_group.inputs[3])
     new_material.node_tree.links.new(image_flipped_node.outputs[0], node_group.inputs[4])
     new_material.node_tree.links.new(node_group.outputs[0], material_output_node.inputs[0])
+
+    if sun_driver_obj is not None:
+        create_z_rotation_driver(node_group.inputs[0], sun_driver_obj)
+    
+    if head_driver_obj is not None:
+        create_z_rotation_driver(node_group.inputs[1], head_driver_obj)
