@@ -29,7 +29,7 @@ click the check box on the entry that has just appeared and the addon should be 
 One important aspect of the face mesh is the UV map. Otherwise, any topology should work. The UV map should be
 laid out similarly to the below example:
 
-![UV map of face projected horizontally from the front](https://github-production-user-asset-6210df.s3.amazonaws.com/23511921/268442214-b2796d7e-9e5b-45a3-8984-34d23a8b0b66.png)
+![UV map of face projected horizontally from the front](https://github.com/EmuMan/npr-face-shader/assets/23511921/7115eb43-7501-4408-8bb0-a23b49d2add8)
 
 If you already have a UV map for other textures, then you can simply create another one by selecting the
 object, navigating to the `Data` tab on the right side (click the green triangle in the `Properties` panel),
