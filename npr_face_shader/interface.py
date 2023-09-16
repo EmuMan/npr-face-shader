@@ -14,7 +14,8 @@ DEFAULT_MATERIAL_NAME = 'NPR Face Shader'
 
 
 def get_absolute_path(relative_path: str) -> str:
-    return os.path.join(os.path.dirname(__file__), relative_path)
+    root_dir = os.path.dirname(os.path.dirname(__file__))
+    return os.path.join(root_dir, relative_path)
 
 class FaceShadeProps(bpy.types.PropertyGroup):
 
