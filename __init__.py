@@ -3,7 +3,7 @@
 bl_info = {
     "name": "NPR Face Shader",
     "author": "EmuMan",
-    "version": (0, 1, 4),
+    "version": (0, 1, 5),
     "blender": (3, 6, 1),
     "location": "View3D > Sidebar > Face Shader Panel",
     "description": "A utility for easily generating smooth face shading on characters via grease pencil without using normal editing or external programs.",
