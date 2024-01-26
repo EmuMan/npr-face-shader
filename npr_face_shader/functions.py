@@ -85,6 +85,8 @@ def create_face_shadow_map(operator: bpy.types.Operator, pool: Pool):
     
     face_lines_strokes = [[np.array(point.co) for point in stroke.points] for stroke in face_lines_strokes]
     lines_on_image = pool.map(uv_projector, face_lines_strokes)
+
+    lines_on_image[:] = sorted(lines_on_image, key=lambda line: find_average_x_value(line))
     
     operator.report({'INFO'}, 'Finding row intersection points...')
     intersection_points = []
@@ -150,10 +152,10 @@ def create_face_shadow_map(operator: bpy.types.Operator, pool: Pool):
         )
         highlight_shapes_on_image.append(projected_points)
     
-    operator.report({'INFO'}, 'Closing off shadow shapes...')
+    operator.report({'INFO'}, 'Closing off highlight shapes...')
     highlight_shapes_on_image[:] = [close_2d_shape(shape) for shape in highlight_shapes_on_image]
     
-    operator.report({'INFO'}, 'Calculating shadow pixels...')
+    operator.report({'INFO'}, 'Calculating highlight pixels...')
     for shape in highlight_shapes_on_image:
         shape_center = find_2d_shape_center(shape)
         shape_max_distance_squared = find_2d_furthest_distance_squared(shape_center, shape)

@@ -300,3 +300,6 @@ def get_first_non_empty_array(arrays: list[list]) -> Optional[list]:
         if array:
             return array
     return None
+
+def find_average_x_value(points: list[npt.NDArray[np.float64]]) -> float:
+    return sum([point[0] for point in points]) / len(points)
