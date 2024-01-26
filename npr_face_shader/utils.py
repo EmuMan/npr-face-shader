@@ -294,3 +294,9 @@ def build_gaussian_kernel(size: int) -> npt.NDArray[np.float64]:
 
 def build_box_kernel(size: int) -> npt.NDArray[np.float64]:
     return np.array([1.0 / size] * size)
+
+def get_first_non_empty_array(arrays: list[list]) -> Optional[list]:
+    for array in arrays:
+        if array:
+            return array
+    return None

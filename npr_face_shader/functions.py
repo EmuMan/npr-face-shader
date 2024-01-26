@@ -33,24 +33,24 @@ def create_face_shadow_map(operator: bpy.types.Operator, pool: Pool):
     if not verify_property(face_lines_obj, bpy.types.GreasePencil):
         operator.report({'ERROR'}, 'Vertical lines must be a valid grease pencil.')
         return
-    face_lines_layer = face_lines_obj.data.layers[0]
-    face_lines_strokes = face_lines_layer.frames[0].strokes
+    face_lines_strokes = get_first_non_empty_array(
+        [layer.frames[0].strokes for layer in face_lines_obj.data.layers])
     face_lines_matrix_world = np.array(face_lines_obj.matrix_world)[0:3, 0:3]
     
     shadow_shapes_obj = props.shadow_shapes
     if not verify_property(shadow_shapes_obj, bpy.types.GreasePencil):
         operator.report({'ERROR'}, 'Shadow shapes must be a valid grease pencil.')
         return
-    shadow_shapes_layer = shadow_shapes_obj.data.layers[0]
-    shadow_shapes_strokes = shadow_shapes_layer.frames[0].strokes
+    shadow_shapes_strokes = get_first_non_empty_array(
+        [layer.frames[0].strokes for layer in shadow_shapes_obj.data.layers])
     shadow_shapes_matrix_world = np.array(shadow_shapes_obj.matrix_world)[0:3, 0:3]
     
     highlight_shapes_obj = props.highlight_shapes
     if not verify_property(highlight_shapes_obj, bpy.types.GreasePencil):
         operator.report({'ERROR'}, 'Highlight shapes must be a valid grease pencil.')
         return
-    highlight_shapes_layer = highlight_shapes_obj.data.layers[0]
-    highlight_shapes_strokes = highlight_shapes_layer.frames[0].strokes
+    highlight_shapes_strokes = get_first_non_empty_array(
+        [layer.frames[0].strokes for layer in highlight_shapes_obj.data.layers])
     highlight_shapes_matrix_world = np.array(highlight_shapes_obj.matrix_world)[0:3, 0:3]
 
     blur_size = props.blur_size
